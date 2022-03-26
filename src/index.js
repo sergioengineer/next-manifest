@@ -6,6 +6,9 @@
 // dynamic route dir [id]/index.tsx
 // dynamic route file+dir [id]/[id2]/[id3]
 
+//TODO: Handle cases when components have duplicated names
+//TODO: Handle slug routes([...slug])
+
 import { writeFile } from "fs/promises"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
@@ -21,6 +24,7 @@ const defaultManifestPath = `${process.cwd()}/routeManifest.js`
 const argv = yargs(hideBin(process.argv)).argv
 
 async function generateManifest(manifestPath) {
+  console.info("generating manifest...")
   const routes = await HelperFunctions.getRoutesFor(pagesPath)
 
   let componentsString = ""
@@ -44,6 +48,8 @@ async function generateManifest(manifestPath) {
     })
     export default Routes`
   )
+
+  console.info("finished generating the manifest.")
 }
 
 let manifestPath = undefined
@@ -53,12 +59,12 @@ if (argv.out) {
 
 if (argv.watch) {
   watchTree(pagesPath, () => {
-    console.log("executing watch tree")
     generateManifest(manifestPath || defaultManifestPath).catch((c) => {
       console.error(c)
     })
   })
+} else {
+  generateManifest(manifestPath || defaultManifestPath).catch((c) => {
+    console.error(c)
+  })
 }
-generateManifest(manifestPath || defaultManifestPath).catch((c) => {
-  console.error(c)
-})
