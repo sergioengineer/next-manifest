@@ -1,0 +1,35 @@
+{
+  "name": "@sergioengineer/next-manifest",
+  "version": "0.0.0",
+  "description": "Route manifest for next.js",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "test"
+  },
+  "bin": {
+    "next-manifest": "./generateManifest.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "noneyet"
+  },
+  "keywords": [
+    "nextjs",
+    "next.js",
+    "route",
+    "manifest"
+  ],
+  "engines": {
+    "node": ">=16.0"
+  },
+  "peerDependencies": {
+    "next": "^x"
+  },
+  "author": "Sergio C.",
+  "license": "ISC",
+  "dependencies": {
+    "watch": "^0.13.0",
+    "yargs": "^17.4.0"
+  }
+}
