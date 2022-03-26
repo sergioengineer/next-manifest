@@ -8,7 +8,7 @@
     "test": "test"
   },
   "bin": {
-    "next-manifest": "./generateManifest.js"
+    "next-manifest": "./src/index.js"
   },
   "repository": {
     "type": "git",
