@@ -9,7 +9,7 @@
 //TODO: Handle cases when components have duplicated names
 //TODO: Handle slug routes([...slug])
 
-import { writeFile } from "fs/promises"
+import { mkdir, writeFile } from "fs/promises"
 import { dirname } from "path"
 import { fileURLToPath } from "url"
 import { watchTree } from "watch"
@@ -20,7 +20,8 @@ import HelperFunctions from "./lib/HelperFunctions.js"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const pagesPath = await HelperFunctions.findPagesPath()
-const defaultManifestPath = `${process.cwd()}/routeManifest.js`
+const manifestFileName = "routeManifest.js"
+const defaultManifestPath = `${process.cwd()}/${manifestFileName}`
 const argv = yargs(hideBin(process.argv)).argv
 
 async function generateManifest(manifestPath) {
@@ -55,8 +56,16 @@ async function generateManifest(manifestPath) {
 let manifestPath = undefined
 if (argv.out) {
   manifestPath = argv.out
+  if (!manifestPath.startsWith(process.cwd())) {
+    manifestPath = process.cwd() + "/" + manifestPath
+  }
+  manifestPath += "/" + manifestFileName
+  manifestPath = manifestPath.replace("//", "/")
+} else {
+  manifestPath = defaultManifestPath
 }
 
+await mkdir(manifestPath.replace(manifestFileName, ""), { recursive: true })
 if (argv.watch) {
   watchTree(pagesPath, () => {
     generateManifest(manifestPath || defaultManifestPath).catch((c) => {
