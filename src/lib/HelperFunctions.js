@@ -170,11 +170,10 @@ class HelperFunctions {
         componentPath
       )
 
-    const commonJsDocEnding = `
-    \n@param {Object} [query] - An object whose properties are going to be filled as extra parameters
+    const commonJsDocEnding = `@param {Object} [query] - An object whose properties are going to be filled as extra parameters
     eg. urlGetter({foo: "bar"}) = url?foo=bar
-    \n@returns {String} - a valid relative Url string
-    \n**/`
+    @returns {String} - a valid relative Url string
+    **/`
     jsString += "\n/**"
 
     if (route.dynamic) {
@@ -188,7 +187,7 @@ class HelperFunctions {
       }
       jsString += `
        ${commonJsDocEnding}
-       \n["${componentName}"]: function (
+       ["${componentName}"]: function (
        ${paramBodyString}
        query={}){
         ${urlGetterString}
@@ -196,7 +195,7 @@ class HelperFunctions {
     } else {
       jsString += `
         ${commonJsDocEnding}
-        \n["${componentName}"]: function (query={}){
+        ["${componentName}"]: function (query={}){
         ${urlGetterString}
       },`
     }

@@ -50,7 +50,11 @@ if (argv.out) {
 if (argv.watch) {
   watchTree(pagesPath, () => {
     console.log("executing watch tree")
-    generateManifest(manifestPath || defaultManifestPath).catch((c) => {})
+    generateManifest(manifestPath || defaultManifestPath).catch((c) => {
+      console.error(c)
+    })
   })
 }
-generateManifest(manifestPath || defaultManifestPath).catch((c) => {})
+generateManifest(manifestPath || defaultManifestPath).catch((c) => {
+  console.error(c)
+})
