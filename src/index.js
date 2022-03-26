@@ -25,11 +25,15 @@ async function generateManifest(manifestPath) {
 
   let componentsString = ""
   for (const route of routes) {
-    componentsString += await HelperFunctions.getUrlGetterString(
-      manifestPath,
-      pagesPath,
-      route
-    )
+    try {
+      componentsString += await HelperFunctions.getUrlGetterString(
+        manifestPath,
+        pagesPath,
+        route
+      )
+    } catch (e) {
+      console.error("skipping route(likely an invalid component name): ", route)
+    }
   }
 
   await writeFile(
