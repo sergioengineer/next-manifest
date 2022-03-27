@@ -149,9 +149,10 @@ const ManifestGeneratorFactory = (forTests = false) => {
    *  Generates a string with the urlGetter function
    * @param {string} pagesPath - Path to nextjs' pages path(either /pages or /src/pages)
    * @param {Route} route - The route the string's going to be generated after
-   * @returns {string} A string with the urlGetter function body and detailed comments
+   * @returns {UrlGetterReturn} An object where jsString contains the urlGetter function body and detailed comments
+   * and componentName has the name of the added components
    */
-  async function getUrlGetterString(pagesPath, route) {
+  async function getUrlGetterComponent(pagesPath, route) {
     const fileContent = await readFile(route.path, {
       encoding: "utf-8",
     })
@@ -201,7 +202,10 @@ const ManifestGeneratorFactory = (forTests = false) => {
       },`
     }
 
-    return jsString
+    return {
+      jsString,
+      componentName,
+    }
   }
 
   /**
@@ -211,12 +215,25 @@ const ManifestGeneratorFactory = (forTests = false) => {
    */
   async function generateManifest(manifestPath, pagesPath) {
     console.info("generating manifest...")
-    const routes = await getRoutesFor(pagesPath)
+    const routes = await getRoutesFor(pagesPath) //get all the routes
+
+    /**
+     * clears the added components array
+     * This array is used to detect duplacated components
+     */
+    const addedComponents = new Set()
 
     let componentsString = ""
     for (const route of routes) {
       try {
-        componentsString += await getUrlGetterString(pagesPath, route)
+        const component = await getUrlGetterComponent(pagesPath, route)
+        if (addedComponents.has(component.componentName))
+          throw new Error(
+            `Duplicated component name(${component.componentName}). Route is going to be ignored.`
+          )
+
+        addedComponents.add(component.componentName)
+        componentsString += component.jsString
       } catch (e) {
         console.error(e.message, route)
       }
@@ -249,7 +266,7 @@ const ManifestGeneratorFactory = (forTests = false) => {
     getComponentName,
     getStandardUrlGetterFunctionBodyString,
     parseParam,
-    getUrlGetterString,
+    getUrlGetterString: getUrlGetterComponent,
     generateManifest,
   }
 }
@@ -262,4 +279,10 @@ export default ManifestGeneratorFactory
  * @property {string} extension - Extension of the file
  * @property {string} path - File path
  * @property {boolean} dynamic - True if the route has dynamic params(either in file name or folder structure)
+ */
+
+/**
+ * @typedef UrlGetterReturn
+ * @property {string} jsString - string containing the body of the function to be added
+ * @property {string} componentName - name of the component to be added
  */
