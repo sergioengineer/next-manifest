@@ -23,72 +23,86 @@ const ManifestGeneratorFactory = (forTests = false) => {
   }
 
   /**
-   * Returns the route list for each directory inside {path}
+   * Gets the NodeFolder and all of its children for a given path
    * @param {string} path - path the route's are going to be extracted from
-   * @param {Array} [dynamicRouteParams] - list of routes defined by previous calls to this function.
-   * This is used iinternally by this function and should be left to default value
-   * @returns {[Route]} - An array containing all the routes
+   * @returns {FolderNode} - a root folder node
    */
-  async function getRoutesFor(path, dynamicRouteParams = []) {
-    const dirFiles = await getFolderFilesAndDirectories(path)
-    let filesRoute = []
+  async function getRoutesFor(path) {
+    const self = new FolderNode(undefined, "", false)
 
-    for (const file of dirFiles) {
-      if (file.type === fileTypes.directory) {
-        if (file.name === "api") continue
-        const fileParam = getDynamicParam(file.name)
+    await walkInto(path, self)
 
-        if (fileParam)
-          filesRoute = filesRoute.concat(
-            await getRoutesFor(`${path}/${file.name}`, [
-              ...dynamicRouteParams,
-              fileParam,
-            ])
-          )
-        else
-          filesRoute = filesRoute.concat(
-            await getRoutesFor(`${path}/${file.name}`, dynamicRouteParams)
-          )
-
-        continue
-      }
-
+    async function handleFileRoute(file, rootNode) {
       const fileNameStripped = file.name.split(".")
       const fileExtension = fileNameStripped[fileNameStripped.length - 1]
 
+      /**
+       * Files that start with a'_' don't generate routes.
+       * Also files that are not among the accepted file extensions should be ignored
+       */
       if (
         !file.name.startsWith("_") &&
         (typescriptExt.has(fileExtension) || javascriptExt.has(fileExtension))
       ) {
-        const isDynamicRoute =
-          file.name.startsWith("[") || dynamicRouteParams.length > 0
+        const hasDynamicParent = rootNode.hasDynamicParent || rootNode.dynamic
 
         const routePath = `${path}/${file.name}`
         const nameWithoutExtension = file.name.slice(
           0,
           file.name.length - (fileExtension.length + ".".length)
         )
+        const fileContent = await readFile(routePath, {
+          encoding: "utf-8",
+        })
+        const componentName = getComponentName(fileContent)
+
         const routeObject = {
           name: file.name,
           nameWithoutExtension,
           extension: fileExtension,
           path: routePath,
-          dynamic: isDynamicRoute,
+          dynamic: file.name.startsWith("["),
+          hasDynamicParent: hasDynamicParent,
+          componentName,
         }
 
-        const fileParam = getDynamicParam(file.name)
-
-        if (isDynamicRoute) {
-          if (fileParam)
-            routeObject.dynamicParams = [...dynamicRouteParams, fileParam]
-          else routeObject.dynamicParams = [...dynamicRouteParams]
-        }
-
-        filesRoute.push(routeObject)
+        rootNode.routes.push(routeObject)
       }
     }
 
-    return filesRoute
+    /**
+     * Walks into path and generate all children nodes for the rootnode
+     * @param {string} path
+     * @param {FolderNode} rootNode
+     */
+    async function walkInto(path, rootNode) {
+      const dirFiles = await getFolderFilesAndDirectories(path)
+      const allPromises = []
+
+      for (const file of dirFiles) {
+        if (file.type === fileTypes.directory) {
+          // We don't record routes for api's
+          if (file.name === "api") continue
+
+          const folderNode = new FolderNode(
+            rootNode,
+            file.name,
+            file.name.startsWith("["),
+            rootNode.dynamic || rootNode.hasDynamicParent
+          )
+          rootNode.children.push(folderNode)
+
+          allPromises.push(walkInto(`${path}/${file.name}`, folderNode))
+
+          continue
+        }
+
+        allPromises.push(handleFileRoute(file, rootNode))
+      }
+      await Promise.allSettled(allPromises)
+    }
+
+    return self
   }
 
   /**
@@ -220,13 +234,9 @@ const ManifestGeneratorFactory = (forTests = false) => {
     let componentsString = ""
     for (const route of routes) {
       try {
-        const fileContent = await readFile(route.path, {
-          encoding: "utf-8",
-        })
-        let componentName = getComponentName(fileContent)
-
+        //If component name is duplicated. We find a new one by appending an index to it
         if (addedComponents.has(componentName)) {
-          for (let i = 1; ; i++) {
+          for (let i = 2; ; i++) {
             const newNameCandidate = `${componentName}${i}`
             if (!addedComponents.has(newNameCandidate)) {
               console.warn(
@@ -290,6 +300,8 @@ export default ManifestGeneratorFactory
  * @property {string} extension - Extension of the file
  * @property {string} path - File path
  * @property {boolean} dynamic - True if the route has dynamic params(either in file name or folder structure)
+ * @property {boolean} hasDynamicParent - True if one of the parent folders is dynamic
+ * @property {string} componentName - Name of the component inside the file represented by this route
  */
 
 /**
@@ -297,3 +309,33 @@ export default ManifestGeneratorFactory
  * @property {string} jsString - string containing the body of the function to be added
  * @property {string} componentName - name of the component to be added
  */
+
+class FolderNode {
+  /**
+   * @type {Route[]]}
+   */
+  routes = []
+
+  /**
+   * @type {FolderNode[]}
+   */
+  children = []
+
+  /**
+   * @param {FolderNode} [parent]
+   * @param {string} name
+   * @param {boolean} dynamic
+   * @param {boolean} hasDynamicParent
+   */
+  constructor(
+    parent = null,
+    name = "",
+    dynamic = false,
+    hasDynamicParent = false
+  ) {
+    this.parent = parent
+    this.name = name
+    this.dynamic = dynamic
+    this.hasDynamicParent = hasDynamicParent
+  }
+}

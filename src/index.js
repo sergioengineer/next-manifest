@@ -6,7 +6,6 @@
 // dynamic route dir [id]/index.tsx
 // dynamic route file+dir [id]/[id2]/[id3]
 
-//TODO: Handle cases when components have duplicated names
 //TODO: Handle slug routes([...slug])
 
 import { mkdir } from "fs/promises"
