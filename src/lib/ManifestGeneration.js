@@ -149,14 +149,11 @@ const ManifestGeneratorFactory = (forTests = false) => {
    *  Generates a string with the urlGetter function
    * @param {string} pagesPath - Path to nextjs' pages path(either /pages or /src/pages)
    * @param {Route} route - The route the string's going to be generated after
-   * @returns {UrlGetterReturn} An object where jsString contains the urlGetter function body and detailed comments
-   * and componentName has the name of the added components
+   * @param {string} componentName - name of the component to be created
+   * @returns {string} A string containing the urlGetter function body and detailed comments
+   * text
    */
-  async function getUrlGetterComponent(pagesPath, route) {
-    const fileContent = await readFile(route.path, {
-      encoding: "utf-8",
-    })
-    const componentName = getComponentName(fileContent)
+  async function getUrlGetterComponentString(pagesPath, route, componentName) {
     const relativePath = route.path.slice(pagesPath.length)
 
     const componentPath =
@@ -202,10 +199,7 @@ const ManifestGeneratorFactory = (forTests = false) => {
       },`
     }
 
-    return {
-      jsString,
-      componentName,
-    }
+    return jsString
   }
 
   /**
@@ -226,14 +220,31 @@ const ManifestGeneratorFactory = (forTests = false) => {
     let componentsString = ""
     for (const route of routes) {
       try {
-        const component = await getUrlGetterComponent(pagesPath, route)
-        if (addedComponents.has(component.componentName))
-          throw new Error(
-            `Duplicated component name(${component.componentName}). Route is going to be ignored.`
-          )
+        const fileContent = await readFile(route.path, {
+          encoding: "utf-8",
+        })
+        let componentName = getComponentName(fileContent)
 
-        addedComponents.add(component.componentName)
-        componentsString += component.jsString
+        if (addedComponents.has(componentName)) {
+          for (let i = 1; ; i++) {
+            const newNameCandidate = `${componentName}${i}`
+            if (!addedComponents.has(newNameCandidate)) {
+              console.warn(
+                `Duplicated component name(${componentName}). ${newNameCandidate} was used instead.`,
+                route
+              )
+              componentName = newNameCandidate
+              break
+            }
+          }
+        }
+
+        addedComponents.add(componentName)
+        componentsString += await getUrlGetterComponentString(
+          pagesPath,
+          route,
+          componentName
+        )
       } catch (e) {
         console.error(e.message, route)
       }
@@ -266,7 +277,7 @@ const ManifestGeneratorFactory = (forTests = false) => {
     getComponentName,
     getStandardUrlGetterFunctionBodyString,
     parseParam,
-    getUrlGetterString: getUrlGetterComponent,
+    getUrlGetterString: getUrlGetterComponentString,
     generateManifest,
   }
 }
