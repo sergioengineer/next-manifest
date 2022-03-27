@@ -1,6 +1,7 @@
 #! /usr/bin/env node
 
-import { readdir, readFile } from "fs/promises"
+import { readFile, writeFile } from "fs/promises"
+import { getFolderFilesAndDirectories } from "./common.js"
 import { fileTypes, javascriptExt, typescriptExt } from "./types.js"
 
 /**
@@ -9,27 +10,6 @@ import { fileTypes, javascriptExt, typescriptExt } from "./types.js"
  * @returns
  */
 const ManifestGeneratorFactory = (forTests = false) => {
-  /**
-   * Gettes the current folder files
-   * @param {string} folderPath -
-   * @returns
-   */
-  async function getFolderFilesAndDirectories(folderPath) {
-    const dir = await readdir(folderPath, { withFileTypes: true })
-
-    return dir
-      .filter((f) => f.isDirectory() || f.isFile())
-      .map((file) => {
-        const type = file.isFile() ? fileTypes.file : fileTypes.directory
-        const name = file.name
-
-        return {
-          name,
-          type,
-        }
-      })
-  }
-
   /**
    * Gets the dynamic param that the file name represents when it is parsed by nextjs' router
    * @param {string} fileName
@@ -83,7 +63,7 @@ const ManifestGeneratorFactory = (forTests = false) => {
         const isDynamicRoute =
           file.name.startsWith("[") || dynamicRouteParams.length > 0
 
-        const path = `${path}/${file.name}`
+        const routePath = `${path}/${file.name}`
         const nameWithoutExtension = file.name.slice(
           0,
           file.name.length - (fileExtension.length + ".".length)
@@ -92,7 +72,7 @@ const ManifestGeneratorFactory = (forTests = false) => {
           name: file.name,
           nameWithoutExtension,
           extension: fileExtension,
-          path,
+          path: routePath,
           dynamic: isDynamicRoute,
         }
 
@@ -227,8 +207,9 @@ const ManifestGeneratorFactory = (forTests = false) => {
   /**
    * Generates route manifes
    * @param {String} manifestPath
+   * @param {String} pagesPath
    */
-  async function generateManifest(manifestPath) {
+  async function generateManifest(manifestPath, pagesPath) {
     console.info("generating manifest...")
     const routes = await getRoutesFor(pagesPath)
 
@@ -244,10 +225,10 @@ const ManifestGeneratorFactory = (forTests = false) => {
     await writeFile(
       manifestPath,
       `
-    const Routes = Object.freeze({
-      ${componentsString}
-    })
-    export default Routes`
+      const Routes = Object.freeze({
+        ${componentsString}
+      })
+      export default Routes`
     )
 
     console.info("finished generating the manifest.")
@@ -263,7 +244,6 @@ const ManifestGeneratorFactory = (forTests = false) => {
    * Test instance. Expose every function for unit testing
    */
   return {
-    getFolderFilesAndDirectories,
     getDynamicParam,
     getRoutesFor,
     getComponentName,

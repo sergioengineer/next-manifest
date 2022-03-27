@@ -13,6 +13,7 @@ import { mkdir } from "fs/promises"
 import { watchTree } from "watch"
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
+import { findPagesPath } from "./lib/common.js"
 import ManifestGeneratorFactory from "./lib/ManifestGeneration.js"
 
 const pagesPath = await findPagesPath()
@@ -43,26 +44,15 @@ await mkdir(manifestPath.replace(manifestFileName, ""), { recursive: true })
 if (argv.watch) {
   watchTree(pagesPath, () => {
     manifestGenerator
-      .generateManifest(manifestPath || defaultManifestPath)
+      .generateManifest(manifestPath || defaultManifestPath, pagesPath)
       .catch((c) => {
         console.error("unexpected error happened: ", c)
       })
   })
 } else {
   manifestGenerator
-    .generateManifest(manifestPath || defaultManifestPath)
+    .generateManifest(manifestPath || defaultManifestPath, pagesPath)
     .catch((c) => {
       console.error("unexpected error happened: ", c)
     })
-}
-
-async function findPagesPath() {
-  const dirFiles = await manifestGenerator.getTree(process.cwd())
-  let pageDirFiles = dirFiles.filter(
-    (file) => file.type === fileTypes.directory && file.name === "pages"
-  )
-
-  return pageDirFiles.length === 0
-    ? process.cwd() + "/src/pages"
-    : process.cwd() + "/pages"
 }
