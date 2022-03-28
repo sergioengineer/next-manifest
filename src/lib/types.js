@@ -1,8 +1,14 @@
 const typescriptExt = new Set(["ts", "tsx"])
 const javascriptExt = new Set(["js", "jsx"])
-const fileTypes = Object.freeze({
+const FileTypes = Object.freeze({
   file: "file",
   directory: "directory",
 })
 
-export { typescriptExt, javascriptExt, fileTypes }
+const DynamicTypes = Object.freeze({
+  optionalSlug: "optionalSlug",
+  requiredSlug: "slug",
+  requiredDynamic: "requiredDynamic",
+})
+
+export { typescriptExt, javascriptExt, FileTypes as fileTypes, DynamicTypes }

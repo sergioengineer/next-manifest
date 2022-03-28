@@ -2,7 +2,13 @@
 
 import { readFile, writeFile } from "fs/promises"
 import { getFolderFilesAndDirectories } from "./common.js"
-import { fileTypes, javascriptExt, typescriptExt } from "./types.js"
+import { FileNode, FolderNode, Node } from "./node.js"
+import {
+  DynamicTypes,
+  fileTypes,
+  javascriptExt,
+  typescriptExt,
+} from "./types.js"
 
 /**
  * Creates a new ManifestGenerator instance
@@ -11,28 +17,23 @@ import { fileTypes, javascriptExt, typescriptExt } from "./types.js"
  */
 const ManifestGeneratorFactory = (forTests = false) => {
   /**
-   * Gets the dynamic param that the file name represents when it is parsed by nextjs' router
-   * @param {string} fileName
-   * @returns
-   */
-  function getDynamicParam(fileName) {
-    const regex = /(?<=\[).*(?=\])/g
-    const paramMatch = fileName.match(regex)
-
-    return paramMatch ? paramMatch[0] : null
-  }
-
-  /**
    * Gets the NodeFolder and all of its children for a given path
    * @param {string} path - path the route's are going to be extracted from
    * @returns {FolderNode} - a root folder node
    */
-  async function getRoutesFor(path) {
+  async function getFolderNodeTreeFor(path) {
     const self = new FolderNode(undefined, "", false)
 
     await walkInto(path, self)
 
-    async function handleFileRoute(file, rootNode) {
+    return self
+
+    /**
+     * @param {string} path
+     * @param {{name:string, type:string}} file
+     * @param {FolderNode} rootNode
+     */
+    async function handleFileRoute(path, file, rootNode) {
       const fileNameStripped = file.name.split(".")
       const fileExtension = fileNameStripped[fileNameStripped.length - 1]
 
@@ -41,33 +42,44 @@ const ManifestGeneratorFactory = (forTests = false) => {
        * Also files that are not among the accepted file extensions should be ignored
        */
       if (
-        !file.name.startsWith("_") &&
-        (typescriptExt.has(fileExtension) || javascriptExt.has(fileExtension))
-      ) {
-        const hasDynamicParent = rootNode.hasDynamicParent || rootNode.dynamic
+        file.name.startsWith("_") ||
+        (!typescriptExt.has(fileExtension) && !javascriptExt.has(fileExtension))
+      )
+        return
 
-        const routePath = `${path}/${file.name}`
-        const nameWithoutExtension = file.name.slice(
-          0,
-          file.name.length - (fileExtension.length + ".".length)
-        )
-        const fileContent = await readFile(routePath, {
-          encoding: "utf-8",
-        })
-        const componentName = getComponentName(fileContent)
+      const hasDynamicParent = rootNode.hasDynamicParent || rootNode.dynamic
 
-        const routeObject = {
-          name: file.name,
-          nameWithoutExtension,
-          extension: fileExtension,
-          path: routePath,
-          dynamic: file.name.startsWith("["),
-          hasDynamicParent: hasDynamicParent,
-          componentName,
-        }
+      const routePath = `${path}/${file.name}`
+      const nameWithoutExtension = file.name.slice(
+        0,
+        file.name.length - (fileExtension.length + ".".length)
+      )
+      const fileContent = await readFile(routePath, {
+        encoding: "utf-8",
+      })
+      const componentName = getComponentName(fileContent)
+      const dynamic = file.name.startsWith("[")
 
-        rootNode.routes.push(routeObject)
+      let dynamicType = null
+      if (dynamic) {
+        if (file.name.startsWith("[[..."))
+          dynamicType = DynamicTypes.optionalSlug
+        else if (file.name.startsWith("[..."))
+          dynamicType = DynamicTypes.requiredSlug
+        else dynamicType = DynamicTypes.requiredDynamic
       }
+
+      const fileNode = new FileNode(
+        nameWithoutExtension,
+        fileExtension,
+        routePath,
+        dynamic,
+        hasDynamicParent,
+        componentName,
+        rootNode,
+        dynamicType
+      )
+      rootNode.files.push(fileNode)
     }
 
     /**
@@ -83,12 +95,14 @@ const ManifestGeneratorFactory = (forTests = false) => {
         if (file.type === fileTypes.directory) {
           // We don't record routes for api's
           if (file.name === "api") continue
+          const dynamic = file.name.startsWith("[")
 
           const folderNode = new FolderNode(
             rootNode,
             file.name,
-            file.name.startsWith("["),
-            rootNode.dynamic || rootNode.hasDynamicParent
+            dynamic,
+            rootNode.dynamic || rootNode.hasDynamicParent,
+            dynamic ? DynamicTypes.requiredDynamic : null
           )
           rootNode.children.push(folderNode)
 
@@ -96,13 +110,10 @@ const ManifestGeneratorFactory = (forTests = false) => {
 
           continue
         }
-
-        allPromises.push(handleFileRoute(file, rootNode))
+        allPromises.push(handleFileRoute(path, file, rootNode))
       }
       await Promise.allSettled(allPromises)
     }
-
-    return self
   }
 
   /**
@@ -122,20 +133,64 @@ const ManifestGeneratorFactory = (forTests = false) => {
   }
 
   /**
-   * @param {String[]} dynamicParams
-   * @returns {String}
+   *
+   * @param {Node[]} nodes
+   * @returns
    */
-  function getStandardUrlGetterFunctionBodyString(dynamicParams = [], path) {
-    const paramsLength = dynamicParams.length
+  function getStandardUrlGetterFunctionBodyString(nodes) {
+    const paramsLength = nodes.length
+    const params = []
+    const nodesParsed = nodes.map((n) => {
+      if (n.dynamic) params.push(n.nameParsed)
+
+      return {
+        ...n,
+        parent: undefined,
+        children: undefined,
+        path: undefined,
+        files: undefined,
+      }
+    })
 
     return `
-      let path = "${path}"
+      const nodes = ${JSON.stringify(nodesParsed)};
+      const dynamicParams = [${params.join(",")}]
       const queryLength = Object.keys(query).length
-  
-      for(let i = 0; i < ${paramsLength}; i++){
-        path = path.replace(/\\[([^/]+)]/, arguments[i])
+      const componentName = "${nodesParsed.at(-1).componentName}"
+      const pathList = []
+      
+      let paramIndex = 0
+      for(const node of nodes){
+        if(!node.dynamic){
+          pathList.push(node.name)
+          continue
+        }
+
+        switch(node.dynamicType){
+          case "${DynamicTypes.requiredDynamic}":
+            if(!dynamicParams[paramIndex])
+              throw new Error("missing required parameter " + node.nameParsed)
+            
+            pathList.push(dynamicParams[paramIndex++])
+            break
+          case "${DynamicTypes.optionalSlug}":
+            if(typeof dynamicParams[paramIndex] === typeof [])
+              pathList.push(dynamicParams[paramIndex++].join("/"))
+            break
+          case "${DynamicTypes.requiredSlug}":
+            if(!dynamicParams[paramIndex] || typeof dynamicParams[paramIndex] !== typeof [] || dynamicParams[paramIndex].length < 1)
+              throw new Error("missing required parameter " + node.nameParsed)
+              
+            pathList.push(dynamicParams[paramIndex++].join("/"))
+            break
+        }
       }
-  
+      if(pathList.at(-1) === "index"){
+       pathList.pop()
+      }
+      let path = pathList.join("/") + "/"
+      const pathWithoutQuery = pathList.join("/")
+      
       if(queryLength > 0)
         path += "?"
       for(const param in query){
@@ -149,69 +204,62 @@ const ManifestGeneratorFactory = (forTests = false) => {
   }
 
   /**
-   * Parses param names so that they don't contain characters that might break the javascript code
-   * eg. [id1, id2] would break the urlGetter generated code
-   *  because they'd end up being interpreted as two different parameters
-   * @param {string} param
-   * @returns {string} parsed param name
-   */
-  function parseParam(param) {
-    return param.replace(",", "").replace(" ", "")
-  }
-
-  /**
    *  Generates a string with the urlGetter function
-   * @param {string} pagesPath - Path to nextjs' pages path(either /pages or /src/pages)
-   * @param {Route} route - The route the string's going to be generated after
-   * @param {string} componentName - name of the component to be created
+   * @param {FileNode} fileNode - a file node
    * @returns {string} A string containing the urlGetter function body and detailed comments
    * text
    */
-  async function getUrlGetterComponentString(pagesPath, route, componentName) {
-    const relativePath = route.path.slice(pagesPath.length)
-
-    const componentPath =
-      route.nameWithoutExtension !== "index"
-        ? relativePath.slice(
-            0,
-            relativePath.length - (".".length + route.extension.length)
-          )
-        : relativePath.slice(0, relativePath.length - route.name.length)
+  async function getUrlGetterComponentString(fileNode) {
     let jsString = ""
-    const urlGetterString = getStandardUrlGetterFunctionBodyString(
-      route.dynamicParams,
-      componentPath
-    )
 
-    const commonJsDocEnding = `@param {Object} [query] - An object whose properties are going to be filled as extra parameters
+    const commonJsDocEnding = `@param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
     eg. urlGetter({foo: "bar"}) = url?foo=bar
     @returns {String} - a valid relative Url string
     **/`
-    jsString += "\n/**"
 
-    if (route.dynamic) {
-      //Mount jsDocComments
-      let paramBodyString = ""
+    //Mount jsDocComments
+    let paramsParsed = []
+    let jsDocStrings = []
 
-      for (const param of route.dynamicParams) {
-        const paramParsed = parseParam(param)
-        jsString += `\n@param {String} ${paramParsed} - Required`
-        paramBodyString += `${paramParsed},`
+    /**
+     * @type {Node[]}
+     */
+    let paramList = []
+
+    await Node.walkOutOf(fileNode, (node) => {
+      paramList.push(node)
+      if (!node.dynamic) return
+
+      paramsParsed.push(node.nameParsed)
+      switch (node.dynamicType) {
+        case DynamicTypes.requiredDynamic:
+          jsDocStrings.push(`\n@param {String} ${node.nameParsed} - Required`)
+          break
+        case DynamicTypes.requiredSlug:
+          jsDocStrings.push(`\n@param {String[]} ${node.nameParsed} - Required`)
+          break
+        case DynamicTypes.optionalSlug:
+          jsDocStrings.push(
+            `\n@param {String[]} [${node.nameParsed}] - optional`
+          )
       }
-      jsString += `
+    })
+
+    const urlGetterString = getStandardUrlGetterFunctionBodyString(
+      paramList.reverse()
+    )
+
+    jsString += `
+      /**
+       * ${jsDocStrings.reverse().join("\n")}
+       * 
        ${commonJsDocEnding}
-       ["${componentName}"]: function (
-       ${paramBodyString}
+       ["${fileNode.componentName}"]: function (
+       ${paramsParsed.reverse().join(",")}
+       ${paramsParsed.length > 0 ? "," : ""}
        query={}){
         ${urlGetterString}
       },`
-    } else {
-      jsString += `
-        ${commonJsDocEnding}
-        ["${componentName}"]: function (query={}){
-        ${urlGetterString}
-      },`
-    }
 
     return jsString
   }
@@ -223,51 +271,51 @@ const ManifestGeneratorFactory = (forTests = false) => {
    */
   async function generateManifest(manifestPath, pagesPath) {
     console.info("generating manifest...")
-    const routes = await getRoutesFor(pagesPath) //get all the routes
+    let componentsStrings = []
 
-    /**
-     * clears the added components array
-     * This array is used to detect duplacated components
-     */
-    const addedComponents = new Set()
+    try {
+      const rootFolderNode = await getFolderNodeTreeFor(pagesPath) //get all the routes
 
-    let componentsString = ""
-    for (const route of routes) {
-      try {
-        //If component name is duplicated. We find a new one by appending an index to it
-        if (addedComponents.has(componentName)) {
-          for (let i = 2; ; i++) {
-            const newNameCandidate = `${componentName}${i}`
-            if (!addedComponents.has(newNameCandidate)) {
-              console.warn(
-                `Duplicated component name(${componentName}). ${newNameCandidate} was used instead.`,
-                route
-              )
-              componentName = newNameCandidate
-              break
+      /**
+       * This array is used to detect duplacated components
+       */
+      const addedComponents = new Set()
+      await FolderNode.walkInto(rootFolderNode, async (node) => {
+        if (node instanceof FileNode) {
+          //If component name is duplicated.
+          // We find a new one by appending an index to it
+          if (addedComponents.has(node.componentName)) {
+            for (let i = 2; ; i++) {
+              const newNameCandidate = `${node.componentName}${i}`
+              if (!addedComponents.has(newNameCandidate)) {
+                console.warn(
+                  `Duplicated component name(${node.componentName}). ${newNameCandidate} was used instead.`,
+                  node
+                )
+                node.componentName = newNameCandidate
+                break
+              }
             }
           }
+          addedComponents.add(node.componentName)
+          componentsStrings.push(await getUrlGetterComponentString(node))
         }
-
-        addedComponents.add(componentName)
-        componentsString += await getUrlGetterComponentString(
-          pagesPath,
-          route,
-          componentName
-        )
-      } catch (e) {
-        console.error(e.message, route)
-      }
-    }
-
-    await writeFile(
-      manifestPath,
-      `
-      const Routes = Object.freeze({
-        ${componentsString}
       })
-      export default Routes`
-    )
+
+      await writeFile(
+        manifestPath,
+        `
+        const Routes = Object.freeze({
+          ${componentsStrings.join("\n")}
+        })
+        export default Routes
+        const routesJson = JSON.parse('${rootFolderNode.serialize()}')
+        
+        `
+      )
+    } catch (e) {
+      console.error(e.message)
+    }
 
     console.info("finished generating the manifest.")
   }
@@ -282,60 +330,11 @@ const ManifestGeneratorFactory = (forTests = false) => {
    * Test instance. Expose every function for unit testing
    */
   return {
-    getDynamicParam,
-    getRoutesFor,
+    getFolderNodeTreeFor,
     getComponentName,
     getStandardUrlGetterFunctionBodyString,
-    parseParam,
-    getUrlGetterString: getUrlGetterComponentString,
+    getUrlGetterComponentString,
     generateManifest,
   }
 }
 export default ManifestGeneratorFactory
-
-/**
- * @typedef Route
- * @property {string} name - Name of the file
- * @property {string} nameWithoutExtension - I believe I don't have to explain this one
- * @property {string} extension - Extension of the file
- * @property {string} path - File path
- * @property {boolean} dynamic - True if the route has dynamic params(either in file name or folder structure)
- * @property {boolean} hasDynamicParent - True if one of the parent folders is dynamic
- * @property {string} componentName - Name of the component inside the file represented by this route
- */
-
-/**
- * @typedef UrlGetterReturn
- * @property {string} jsString - string containing the body of the function to be added
- * @property {string} componentName - name of the component to be added
- */
-
-class FolderNode {
-  /**
-   * @type {Route[]]}
-   */
-  routes = []
-
-  /**
-   * @type {FolderNode[]}
-   */
-  children = []
-
-  /**
-   * @param {FolderNode} [parent]
-   * @param {string} name
-   * @param {boolean} dynamic
-   * @param {boolean} hasDynamicParent
-   */
-  constructor(
-    parent = null,
-    name = "",
-    dynamic = false,
-    hasDynamicParent = false
-  ) {
-    this.parent = parent
-    this.name = name
-    this.dynamic = dynamic
-    this.hasDynamicParent = hasDynamicParent
-  }
-}
