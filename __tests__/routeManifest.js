@@ -49,6 +49,97 @@
 
       /**
        * 
+@param {String[]} [slug] - optional
+       * 
+       @param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
+    eg. urlGetter({foo: "bar"}) = url?foo=bar
+    @returns {String} - a valid relative Url string
+    **/
+       ["Same4"]: function (
+       slug
+       ,
+       query={}){
+        
+      const nodes = [{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null},{"nameParsed":"slug","name":"[[...slug]]","dynamic":true,"hasDynamicParent":false,"dynamicType":"optionalSlug","extension":"jsx","componentName":"Same4"}];
+      const dynamicParams = [slug]
+      const queryLength = Object.keys(query).length
+      const componentName = "Same4"
+      return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
+      
+      
+    
+      },
+
+      /**
+       * 
+       * 
+       @param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
+    eg. urlGetter({foo: "bar"}) = url?foo=bar
+    @returns {String} - a valid relative Url string
+    **/
+       ["Same1"]: function (
+       
+       
+       query={}){
+        
+      const nodes = [{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null},{"nameParsed":"same","name":"same","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"extension":"jsx","componentName":"Same1"}];
+      const dynamicParams = []
+      const queryLength = Object.keys(query).length
+      const componentName = "Same1"
+      return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
+      
+      
+    
+      },
+
+      /**
+       * 
+@param {String[]} slug - Required
+       * 
+       @param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
+    eg. urlGetter({foo: "bar"}) = url?foo=bar
+    @returns {String} - a valid relative Url string
+    **/
+       ["Same3"]: function (
+       slug
+       ,
+       query={}){
+        
+      const nodes = [{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null},{"nameParsed":"slug","name":"[...slug]","dynamic":true,"hasDynamicParent":false,"dynamicType":"slug","extension":"jsx","componentName":"Same3"}];
+      const dynamicParams = [slug]
+      const queryLength = Object.keys(query).length
+      const componentName = "Same3"
+      return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
+      
+      
+    
+      },
+
+      /**
+       * 
+@param {String} same - Required
+       * 
+       @param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
+    eg. urlGetter({foo: "bar"}) = url?foo=bar
+    @returns {String} - a valid relative Url string
+    **/
+       ["Same2"]: function (
+       same
+       ,
+       query={}){
+        
+      const nodes = [{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null},{"nameParsed":"same","name":"[same]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","extension":"jsx","componentName":"Same2"}];
+      const dynamicParams = [same]
+      const queryLength = Object.keys(query).length
+      const componentName = "Same2"
+      return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
+      
+      
+    
+      },
+
+      /**
+       * 
        * 
        @param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
     eg. urlGetter({foo: "bar"}) = url?foo=bar
@@ -69,7 +160,7 @@
     
       },
         })
-        const routesJson = '{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false,"files":[{"nameParsed":"index","name":"index","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Home"}],"children":[{"nameParsed":"test","name":"[test]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","files":[{"nameParsed":"pri","name":"pri","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"Test"}],"children":[]},{"nameParsed":"test","name":"test","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"pri","name":"[pri]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Test2"}],"children":[]}]}'
+        const routesJson = '{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false,"files":[{"nameParsed":"index","name":"index","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Home"}],"children":[{"nameParsed":"test","name":"[test]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","files":[{"nameParsed":"pri","name":"pri","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"Test"}],"children":[]},{"nameParsed":"test","name":"test","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"pri","name":"[pri]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Test2"}],"children":[]},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"slug","name":"[[...slug]]","dynamic":true,"hasDynamicParent":false,"dynamicType":"optionalSlug","componentName":"Same4"},{"nameParsed":"same","name":"same","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Same1"},{"nameParsed":"slug","name":"[...slug]","dynamic":true,"hasDynamicParent":false,"dynamicType":"slug","componentName":"Same3"},{"nameParsed":"same","name":"[same]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Same2"}],"children":[]}]}'
         export  {
           
           routesJson

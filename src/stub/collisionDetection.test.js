@@ -1,5 +1,5 @@
 import ManifestGeneratorFactory from "../lib/ManifestGeneration.js"
-import { hasCollided } from "./collisionDetection.js"
+import { getSortedRouteList, hasCollided } from "./collisionDetection.js"
 
 const pagesPath = process.cwd() + "/__tests__/pages"
 const manifestFileName = "routeManifest.js"
@@ -20,7 +20,7 @@ manifestGenerator
       const routeString = Routes.Test("test")
       const pathList = routeString.slice(1, routeString.length - 1).split("/")
       if (!(await hasCollided("Test", pathList, JSON.parse(routesJson))))
-        console.error("Collision should be detected")
+        console.error("Test 1 - Collision should be detected")
     }
 
     {
@@ -28,7 +28,27 @@ manifestGenerator
       const pathList = routeString.slice(1, routeString.length - 1).split("/")
 
       if (await hasCollided("Test", pathList, JSON.parse(routesJson)))
-        console.error("Collision shouldn't be detected here")
+        console.error("Test 2 - Collision shouldn't be detected here")
+    }
+
+    {
+      const routeString = Routes.Same1()
+      const pathList = routeString.slice(1, routeString.length - 1).split("/")
+      const routeList = await getSortedRouteList(
+        pathList,
+        JSON.parse(routesJson)
+      )
+
+      const mapped = routeList.flatMap((r) => r.name)
+      console.log(routeList)
+      const allRight =
+        mapped[0] === "same" &&
+        mapped[1] === "[same]" &&
+        mapped[2] === "[...slug]" &&
+        mapped[3] === "[[...slug]]"
+
+      if (!allRight)
+        console.error("Test 3 - Priority same folder not correctly ordered")
     }
   })
   .catch((c) => {

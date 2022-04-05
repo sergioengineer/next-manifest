@@ -29,7 +29,7 @@ export async function getSortedRouteList(pathList, rootNode) {
   for (let i = 0; i < pathList.length; i++) {
     const path = pathList[i]
     const isLastPath = pathList.length - 1 === i
-    const reverseIndex = BigInt(pathList.length - i)
+    const reverseIndex = BigInt(pathList.length - i - 1)
     if (!isLastPath) {
       /**
        * When it is not the last path. Final candidates can only be slugs
