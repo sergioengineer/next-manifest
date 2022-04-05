@@ -4,7 +4,6 @@ import { DynamicTypes } from "../lib/types.js"
 /**
  * @param {string[]} pathList
  * @param {FolderNode} rootNode
- * @param {string} expectedComponentName
  */
 export async function getSortedRouteList(pathList, rootNode) {
   /**@type {Node[]} */
@@ -140,4 +139,19 @@ export async function getSortedRouteList(pathList, rootNode) {
   )
 
   return finalCandidates
+}
+
+/**
+ * @param {string[]} pathList
+ * @param {FolderNode} rootNode
+ * @param {string} expectedComponentName
+ */
+export async function collisionDetection(
+  expectedComponentName,
+  pathList,
+  rootNode
+) {
+  const sortedRouteList = await getSortedRouteList(pathList, rootNode)
+  if (sortedRouteList[0].componentName !== expectedComponentName)
+    throw new Error("A collision happened")
 }
