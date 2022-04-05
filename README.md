@@ -1,4 +1,6 @@
-## Next Manifest
+# ⚡ Next Manifest ⚡
+
+## About
 
 Next manifest is a package which generates a blitzjs-like route manifest for NextJs projects.
 Instead of writing plain urls, you can reference nextjs' pages through the Routes object.
