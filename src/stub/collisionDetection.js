@@ -9,6 +9,7 @@ export async function getSortedRouteList(pathList, rootNode) {
   /**@type {Node[]} */
   let finalCandidates = []
   /**@type {FolderNode[]} */
+
   let candidates = [rootNode]
   rootNode.priority = BigInt(0)
 
@@ -134,11 +135,22 @@ export async function getSortedRouteList(pathList, rootNode) {
       )
     }
   }
-  finalCandidates.sort((c1, c2) =>
+
+  return finalCandidates.sort((c1, c2) =>
     c2.priority > c1.priority ? 1 : c1.priority > c2.priority ? -1 : 0
   )
+}
 
-  return finalCandidates
+/**
+ * @param {string[]} pathList
+ * @param {FolderNode} rootNode
+ * @param {string} expectedComponentName
+ */
+export async function hasCollided(expectedComponentName, pathList, rootNode) {
+  const sortedRouteList = await getSortedRouteList(pathList, rootNode)
+  if (sortedRouteList[0].componentName !== expectedComponentName) return true
+
+  return false
 }
 
 /**
@@ -151,7 +163,7 @@ export async function collisionDetection(
   pathList,
   rootNode
 ) {
-  const sortedRouteList = await getSortedRouteList(pathList, rootNode)
-  if (sortedRouteList[0].componentName !== expectedComponentName)
-    throw new Error("A collision happened")
+  if (hasCollided(expectedComponentName, pathList, rootNode))
+    throw new Error(`Collision detected! It looks like you were trying to redirect the user to route "${expectedComponentName}",
+     but the generated url will end up in route "${sortedRouteList[0].componentName}".`)
 }

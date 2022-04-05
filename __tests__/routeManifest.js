@@ -186,9 +186,10 @@
     
       },
         })
-        const routesJson = JSON.parse('{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false,"files":[{"nameParsed":"index","name":"index","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Home"}],"children":[{"nameParsed":"test","name":"[test]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","files":[{"nameParsed":"pri","name":"pri","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"Test"}],"children":[]},{"nameParsed":"test","name":"test","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"pri","name":"[pri]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Test2"}],"children":[]}]}')
+        const routesJson = '{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false,"files":[{"nameParsed":"index","name":"index","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Home"}],"children":[{"nameParsed":"test","name":"[test]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","files":[{"nameParsed":"pri","name":"pri","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"Test"}],"children":[]},{"nameParsed":"test","name":"test","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"pri","name":"[pri]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Test2"}],"children":[]}]}'
         export  {
-          Routes,
+          
           routesJson
         }
+        export default Routes
         

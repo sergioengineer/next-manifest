@@ -307,11 +307,12 @@ const ManifestGeneratorFactory = (forTests = false) => {
         const Routes = Object.freeze({
           ${componentsStrings.join("\n")}
         })
-        const routesJson = JSON.parse('${rootFolderNode.serialize()}')
+        const routesJson = '${rootFolderNode.serialize()}'
         export  {
-          Routes,
+          
           routesJson
         }
+        export default Routes
         `
       )
     } catch (e) {

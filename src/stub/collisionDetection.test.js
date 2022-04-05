@@ -1,5 +1,5 @@
 import ManifestGeneratorFactory from "../lib/ManifestGeneration.js"
-import { collisionDetection } from "./collisionDetection.js"
+import { hasCollided } from "./collisionDetection.js"
 
 const pagesPath = process.cwd() + "/__tests__/pages"
 const manifestFileName = "routeManifest.js"
@@ -13,12 +13,23 @@ const manifestPath = process.cwd() + "/__tests__/" + manifestFileName
 manifestGenerator
   .generateManifest(manifestPath || defaultManifestPath, pagesPath)
   .then(async () => {
-    const { routesJson, Routes } = await import(
+    const { routesJson, default: Routes } = await import(
       process.cwd() + "/__tests__/routeManifest.js"
     )
-    const pathList = Routes.Test("test").split("/").splice(1, 2)
-    console.log(pathList)
-    console.log(collisionDetection("Test", pathList, routesJson))
+    {
+      const routeString = Routes.Test("test")
+      const pathList = routeString.slice(1, routeString.length - 1).split("/")
+      if (!(await hasCollided("Test", pathList, JSON.parse(routesJson))))
+        console.error("Collision should be detected")
+    }
+
+    {
+      const routeString = Routes.Test("test2")
+      const pathList = routeString.slice(1, routeString.length - 1).split("/")
+
+      if (await hasCollided("Test", pathList, JSON.parse(routesJson)))
+        console.error("Collision shouldn't be detected here")
+    }
   })
   .catch((c) => {
     console.error("unexpected error happened: ", c)
