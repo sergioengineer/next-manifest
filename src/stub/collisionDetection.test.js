@@ -40,12 +40,11 @@ manifestGenerator
       )
 
       const mapped = routeList.flatMap((r) => r.name)
-      console.log(routeList)
       const allRight =
         mapped[0] === "same" &&
         mapped[1] === "[same]" &&
-        mapped[2] === "[...slug]" &&
-        mapped[3] === "[[...slug]]"
+        mapped[2] === "[...same]" &&
+        mapped[3] === "[[...same]]"
 
       if (!allRight)
         console.error("Test 3 - Priority same folder not correctly ordered")

@@ -5,7 +5,7 @@ import { DynamicTypes } from "../lib/types.js"
  * @param {string[]} pathList
  * @param {FolderNode} rootNode
  */
-export async function getSortedRouteList(pathList, rootNode) {
+async function getSortedRouteList(pathList, rootNode) {
   /**@type {Node[]} */
   let finalCandidates = []
   /**@type {FolderNode[]} */
@@ -146,7 +146,7 @@ export async function getSortedRouteList(pathList, rootNode) {
  * @param {FolderNode} rootNode
  * @param {string} expectedComponentName
  */
-export async function hasCollided(expectedComponentName, pathList, rootNode) {
+async function hasCollided(expectedComponentName, pathList, rootNode) {
   const sortedRouteList = await getSortedRouteList(pathList, rootNode)
   if (sortedRouteList[0].componentName !== expectedComponentName) return true
 
@@ -158,12 +158,10 @@ export async function hasCollided(expectedComponentName, pathList, rootNode) {
  * @param {FolderNode} rootNode
  * @param {string} expectedComponentName
  */
-export async function collisionDetection(
-  expectedComponentName,
-  pathList,
-  rootNode
-) {
+async function collisionDetection(expectedComponentName, pathList, rootNode) {
   if (hasCollided(expectedComponentName, pathList, rootNode))
     throw new Error(`Collision detected! It looks like you were trying to redirect the user to route "${expectedComponentName}",
      but the generated url will end up in route "${sortedRouteList[0].componentName}".`)
 }
+
+export { getSortedRouteList, collisionDetection, hasCollided }
