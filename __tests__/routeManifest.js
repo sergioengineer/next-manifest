@@ -1,4 +1,5 @@
 
+        const DynamicTypes = JSON.parse('{"optionalSlug":"optionalSlug","requiredSlug":"slug","requiredDynamic":"requiredDynamic"}')
         const Routes = Object.freeze({
           
       /**
@@ -72,21 +73,21 @@
 
       /**
        * 
-@param {String[]} [same] - optional
+@param {String} same - Required
        * 
        @param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
     eg. urlGetter({foo: "bar"}) = url?foo=bar
     @returns {String} - a valid relative Url string
     **/
-       ["Same4"]: function (
+       ["Same2"]: function (
        same
        ,
        query={}){
         
-      const nodes = [{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null},{"nameParsed":"same","name":"[[...same]]","dynamic":true,"hasDynamicParent":false,"dynamicType":"optionalSlug","extension":"jsx","componentName":"Same4"}];
+      const nodes = [{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null},{"nameParsed":"same","name":"[same]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","extension":"jsx","componentName":"Same2"}];
       const dynamicParams = [same]
       const queryLength = Object.keys(query).length
-      const componentName = "Same4"
+      const componentName = "Same2"
       return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
       
       
@@ -117,21 +118,21 @@
 
       /**
        * 
-@param {String} same - Required
+@param {String[]} [same] - optional
        * 
        @param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
     eg. urlGetter({foo: "bar"}) = url?foo=bar
     @returns {String} - a valid relative Url string
     **/
-       ["Same2"]: function (
+       ["Same4"]: function (
        same
        ,
        query={}){
         
-      const nodes = [{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null},{"nameParsed":"same","name":"[same]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","extension":"jsx","componentName":"Same2"}];
+      const nodes = [{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null},{"nameParsed":"same","name":"[[...same]]","dynamic":true,"hasDynamicParent":false,"dynamicType":"optionalSlug","extension":"jsx","componentName":"Same4"}];
       const dynamicParams = [same]
       const queryLength = Object.keys(query).length
-      const componentName = "Same2"
+      const componentName = "Same4"
       return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
       
       
@@ -160,7 +161,7 @@
     
       },
         })
-        const routesJson = '{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false,"files":[{"nameParsed":"index","name":"index","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Home"}],"children":[{"nameParsed":"test","name":"[test]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","files":[{"nameParsed":"pri","name":"pri","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"Test"}],"children":[]},{"nameParsed":"test","name":"test","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"pri","name":"[pri]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Test2"}],"children":[]},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"same","name":"[...same]","dynamic":true,"hasDynamicParent":false,"dynamicType":"slug","componentName":"Same3"},{"nameParsed":"same","name":"[[...same]]","dynamic":true,"hasDynamicParent":false,"dynamicType":"optionalSlug","componentName":"Same4"},{"nameParsed":"same","name":"same","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Same1"},{"nameParsed":"same","name":"[same]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Same2"}],"children":[]}]}'
+        const routesJson = '{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false,"files":[{"nameParsed":"index","name":"index","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Home"}],"children":[{"nameParsed":"test","name":"[test]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","files":[{"nameParsed":"pri","name":"pri","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"Test"}],"children":[]},{"nameParsed":"test","name":"test","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"pri","name":"[pri]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Test2"}],"children":[]},{"nameParsed":"testPrioritySameFolder","name":"testPrioritySameFolder","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"files":[{"nameParsed":"same","name":"[...same]","dynamic":true,"hasDynamicParent":false,"dynamicType":"slug","componentName":"Same3"},{"nameParsed":"same","name":"[same]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","componentName":"Same2"},{"nameParsed":"same","name":"same","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Same1"},{"nameParsed":"same","name":"[[...same]]","dynamic":true,"hasDynamicParent":false,"dynamicType":"optionalSlug","componentName":"Same4"}],"children":[]}]}'
         export  {
           
           routesJson
@@ -177,17 +178,17 @@
             }
   
             switch(node.dynamicType){
-              case "requiredDynamic":
+              case DynamicTypes.requiredDynamic:
                 if(!dynamicParams[paramIndex])
                   throw new Error("missing required parameter " + node.nameParsed)
                 
                 pathList.push(dynamicParams[paramIndex++])
                 break
-              case "optionalSlug":
+              case DynamicTypes.optionalSlug:
                 if(typeof dynamicParams[paramIndex] === typeof [])
                   pathList.push(dynamicParams[paramIndex++].join("/"))
                 break
-              case "slug":
+              case DynamicTypes.requiredSlug:
                 if(!dynamicParams[paramIndex] || typeof dynamicParams[paramIndex] !== typeof [] || dynamicParams[paramIndex].length < 1)
                   throw new Error("missing required parameter " + node.nameParsed)
                   
@@ -208,6 +209,10 @@
           if(queryLength > 0)
             path = path.substring(0, path.length-1)
           
+          
+            
           return path
         }
+
+        
         

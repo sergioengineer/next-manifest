@@ -11,7 +11,9 @@ const manifestGenerator = ManifestGeneratorFactory()
 const manifestPath = process.cwd() + "/__tests__/" + manifestFileName
 
 manifestGenerator
-  .generateManifest(manifestPath || defaultManifestPath, pagesPath)
+  .generateManifest(manifestPath || defaultManifestPath, pagesPath, {
+    disableCollisionDetection: true,
+  })
   .then(async () => {
     const { routesJson, default: Routes } = await import(
       process.cwd() + "/__tests__/routeManifest.js"
@@ -21,6 +23,7 @@ manifestGenerator
       const pathList = routeString.slice(1, routeString.length - 1).split("/")
       if (!(await hasCollided("Test", pathList, JSON.parse(routesJson))))
         console.error("Test 1 - Collision should be detected")
+      else console.log("Test Pass")
     }
 
     {
@@ -29,6 +32,7 @@ manifestGenerator
 
       if (await hasCollided("Test", pathList, JSON.parse(routesJson)))
         console.error("Test 2 - Collision shouldn't be detected here")
+      else console.log("Test Pass")
     }
 
     {
@@ -48,6 +52,7 @@ manifestGenerator
 
       if (!allRight)
         console.error("Test 3 - Priority same folder not correctly ordered")
+      else console.log("Test Pass")
     }
   })
   .catch((c) => {

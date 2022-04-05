@@ -11,7 +11,7 @@ async function getSortedRouteList(pathList, rootNode) {
   /**@type {FolderNode[]} */
 
   let candidates = [rootNode]
-  rootNode.priority = BigInt(0)
+  rootNode.priority = 0
 
   /**
    * Iterates over every folder and file that might match a given route(pathList)
@@ -29,7 +29,7 @@ async function getSortedRouteList(pathList, rootNode) {
   for (let i = 0; i < pathList.length; i++) {
     const path = pathList[i]
     const isLastPath = pathList.length - 1 === i
-    const reverseIndex = BigInt(pathList.length - i - 1)
+    const reverseIndex = pathList.length - i - 1
     if (!isLastPath) {
       /**
        * When it is not the last path. Final candidates can only be slugs
@@ -38,13 +38,13 @@ async function getSortedRouteList(pathList, rootNode) {
       finalCandidates = finalCandidates.concat(
         candidates.reduce((prev, curr) => {
           const files = curr.files.filter((f) => {
-            if (!f?.priority) f.priority = BigInt(0)
+            if (!f?.priority) f.priority = 0
 
             if (f.dynamicType === DynamicTypes.requiredSlug) {
-              f.priority += 2n * 5n ** reverseIndex + curr.priority
+              f.priority += 2 * 5 ** reverseIndex + curr.priority
             }
             if (f.dynamicType === DynamicTypes.optionalSlug) {
-              f.priority += 1n * 5n ** reverseIndex + curr.priority
+              f.priority += 1 * 5 ** reverseIndex + curr.priority
             }
 
             return f.priority > 0
@@ -58,13 +58,13 @@ async function getSortedRouteList(pathList, rootNode) {
       // while setting the aproppriate priority
       candidates = candidates.reduce((prev, curr) => {
         const children = curr.children.filter((c) => {
-          if (!c?.priority) c.priority = BigInt(0)
+          if (!c?.priority) c.priority = 0
 
           if (c.name === path)
-            c.priority += 4n * 5n ** reverseIndex + curr.priority
+            c.priority += 4 * 5 ** reverseIndex + curr.priority
 
           if (c.dynamicType === DynamicTypes.requiredDynamic) {
-            c.priority += 3n * 5n ** reverseIndex + curr.priority
+            c.priority += 3 * 5 ** reverseIndex + curr.priority
           }
 
           return c.priority > 0
@@ -80,19 +80,19 @@ async function getSortedRouteList(pathList, rootNode) {
       finalCandidates = finalCandidates.concat(
         candidates.reduce((prev, curr) => {
           const files = curr.files.filter((f) => {
-            if (!f?.priority) f.priority = BigInt(0)
+            if (!f?.priority) f.priority = 0
 
             if (f.name === path) {
-              f.priority += 4n * 5n ** reverseIndex + curr.priority
+              f.priority += 4 * 5 ** reverseIndex + curr.priority
             }
             if (f.dynamicType === DynamicTypes.requiredDynamic) {
-              f.priority += 3n * 5n ** reverseIndex + curr.priority
+              f.priority += 3 * 5 ** reverseIndex + curr.priority
             }
             if (f.dynamicType === DynamicTypes.requiredSlug) {
-              f.priority += 2n * 5n ** reverseIndex + curr.priority
+              f.priority += 2 * 5 ** reverseIndex + curr.priority
             }
             if (f.dynamicType === DynamicTypes.optionalSlug) {
-              f.priority += 1n * 5n ** reverseIndex + curr.priority
+              f.priority += 1 * 5 ** reverseIndex + curr.priority
             }
 
             return f.priority > 0
@@ -112,19 +112,19 @@ async function getSortedRouteList(pathList, rootNode) {
           if (curr.name === path || curr.dynamic) {
             const file = curr.files.find((f) => f.name === "index")
             if (file) {
-              if (!file?.priority) file.priority = BigInt(0)
+              if (!file?.priority) file.priority = 0
 
               if (file.name === path) {
-                file.priority += 4n * 5n ** reverseIndex + curr.priority
+                file.priority += 4 * 5 ** reverseIndex + curr.priority
               }
               if (file.dynamicType === DynamicTypes.requiredDynamic) {
-                file.priority += 3n * 5n ** reverseIndex + curr.priority
+                file.priority += 3 * 5 ** reverseIndex + curr.priority
               }
               if (file.dynamicType === DynamicTypes.requiredSlug) {
-                file.priority += 2n * 5n ** reverseIndex + curr.priority
+                file.priority += 2 * 5 ** reverseIndex + curr.priority
               }
               if (file.dynamicType === DynamicTypes.optionalSlug) {
-                file.priority += 1n * 5n ** reverseIndex + curr.priority
+                file.priority += 1 * 5 ** reverseIndex + curr.priority
               }
               files.push(file)
             }
@@ -159,7 +159,8 @@ async function hasCollided(expectedComponentName, pathList, rootNode) {
  * @param {string} expectedComponentName
  */
 async function collisionDetection(expectedComponentName, pathList, rootNode) {
-  if (hasCollided(expectedComponentName, pathList, rootNode))
+  const sortedRouteList = await getSortedRouteList(pathList, rootNode)
+  if (sortedRouteList[0].componentName !== expectedComponentName)
     throw new Error(`Collision detected! It looks like you were trying to redirect the user to route "${expectedComponentName}",
      but the generated url will end up in route "${sortedRouteList[0].componentName}".`)
 }
