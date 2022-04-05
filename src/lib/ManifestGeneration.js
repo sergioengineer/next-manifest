@@ -157,48 +157,9 @@ const ManifestGeneratorFactory = (forTests = false) => {
       const dynamicParams = [${params.join(",")}]
       const queryLength = Object.keys(query).length
       const componentName = "${nodesParsed.at(-1).componentName}"
-      const pathList = []
+      return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
       
-      let paramIndex = 0
-      for(const node of nodes){
-        if(!node.dynamic){
-          pathList.push(node.name)
-          continue
-        }
-
-        switch(node.dynamicType){
-          case "${DynamicTypes.requiredDynamic}":
-            if(!dynamicParams[paramIndex])
-              throw new Error("missing required parameter " + node.nameParsed)
-            
-            pathList.push(dynamicParams[paramIndex++])
-            break
-          case "${DynamicTypes.optionalSlug}":
-            if(typeof dynamicParams[paramIndex] === typeof [])
-              pathList.push(dynamicParams[paramIndex++].join("/"))
-            break
-          case "${DynamicTypes.requiredSlug}":
-            if(!dynamicParams[paramIndex] || typeof dynamicParams[paramIndex] !== typeof [] || dynamicParams[paramIndex].length < 1)
-              throw new Error("missing required parameter " + node.nameParsed)
-              
-            pathList.push(dynamicParams[paramIndex++].join("/"))
-            break
-        }
-      }
-      if(pathList.at(-1) === "index"){
-       pathList.pop()
-      }
-      let path = pathList.join("/") + "/"
       
-      if(queryLength > 0)
-        path += "?"
-      for(const param in query){
-        path += param + "=" + String(query[param]) + "&"
-      }
-      if(queryLength > 0)
-        path = path.substring(0, path.length-1)
-      
-      return path
     `
   }
 
@@ -313,6 +274,50 @@ const ManifestGeneratorFactory = (forTests = false) => {
           routesJson
         }
         export default Routes
+        
+        function standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query){
+          const pathList = []
+          let paramIndex = 0
+          for(const node of nodes){
+            if(!node.dynamic){
+              pathList.push(node.name)
+              continue
+            }
+  
+            switch(node.dynamicType){
+              case "${DynamicTypes.requiredDynamic}":
+                if(!dynamicParams[paramIndex])
+                  throw new Error("missing required parameter " + node.nameParsed)
+                
+                pathList.push(dynamicParams[paramIndex++])
+                break
+              case "${DynamicTypes.optionalSlug}":
+                if(typeof dynamicParams[paramIndex] === typeof [])
+                  pathList.push(dynamicParams[paramIndex++].join("/"))
+                break
+              case "${DynamicTypes.requiredSlug}":
+                if(!dynamicParams[paramIndex] || typeof dynamicParams[paramIndex] !== typeof [] || dynamicParams[paramIndex].length < 1)
+                  throw new Error("missing required parameter " + node.nameParsed)
+                  
+                pathList.push(dynamicParams[paramIndex++].join("/"))
+                break
+            }
+          }
+          if(pathList.at(-1) === "index"){
+          pathList.pop()
+          }
+          let path = pathList.join("/") + "/"
+          
+          if(queryLength > 0)
+            path += "?"
+          for(const param in query){
+            path += param + "=" + String(query[param]) + "&"
+          }
+          if(queryLength > 0)
+            path = path.substring(0, path.length-1)
+          
+          return path
+        }
         `
       )
     } catch (e) {

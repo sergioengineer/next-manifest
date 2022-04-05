@@ -18,48 +18,9 @@
       const dynamicParams = [test]
       const queryLength = Object.keys(query).length
       const componentName = "Test"
-      const pathList = []
+      return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
       
-      let paramIndex = 0
-      for(const node of nodes){
-        if(!node.dynamic){
-          pathList.push(node.name)
-          continue
-        }
-
-        switch(node.dynamicType){
-          case "requiredDynamic":
-            if(!dynamicParams[paramIndex])
-              throw new Error("missing required parameter " + node.nameParsed)
-            
-            pathList.push(dynamicParams[paramIndex++])
-            break
-          case "optionalSlug":
-            if(typeof dynamicParams[paramIndex] === typeof [])
-              pathList.push(dynamicParams[paramIndex++].join("/"))
-            break
-          case "slug":
-            if(!dynamicParams[paramIndex] || typeof dynamicParams[paramIndex] !== typeof [] || dynamicParams[paramIndex].length < 1)
-              throw new Error("missing required parameter " + node.nameParsed)
-              
-            pathList.push(dynamicParams[paramIndex++].join("/"))
-            break
-        }
-      }
-      if(pathList.at(-1) === "index"){
-       pathList.pop()
-      }
-      let path = pathList.join("/") + "/"
       
-      if(queryLength > 0)
-        path += "?"
-      for(const param in query){
-        path += param + "=" + String(query[param]) + "&"
-      }
-      if(queryLength > 0)
-        path = path.substring(0, path.length-1)
-      
-      return path
     
       },
 
@@ -80,48 +41,9 @@
       const dynamicParams = [pri]
       const queryLength = Object.keys(query).length
       const componentName = "Test2"
-      const pathList = []
+      return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
       
-      let paramIndex = 0
-      for(const node of nodes){
-        if(!node.dynamic){
-          pathList.push(node.name)
-          continue
-        }
-
-        switch(node.dynamicType){
-          case "requiredDynamic":
-            if(!dynamicParams[paramIndex])
-              throw new Error("missing required parameter " + node.nameParsed)
-            
-            pathList.push(dynamicParams[paramIndex++])
-            break
-          case "optionalSlug":
-            if(typeof dynamicParams[paramIndex] === typeof [])
-              pathList.push(dynamicParams[paramIndex++].join("/"))
-            break
-          case "slug":
-            if(!dynamicParams[paramIndex] || typeof dynamicParams[paramIndex] !== typeof [] || dynamicParams[paramIndex].length < 1)
-              throw new Error("missing required parameter " + node.nameParsed)
-              
-            pathList.push(dynamicParams[paramIndex++].join("/"))
-            break
-        }
-      }
-      if(pathList.at(-1) === "index"){
-       pathList.pop()
-      }
-      let path = pathList.join("/") + "/"
       
-      if(queryLength > 0)
-        path += "?"
-      for(const param in query){
-        path += param + "=" + String(query[param]) + "&"
-      }
-      if(queryLength > 0)
-        path = path.substring(0, path.length-1)
-      
-      return path
     
       },
 
@@ -141,48 +63,9 @@
       const dynamicParams = []
       const queryLength = Object.keys(query).length
       const componentName = "Home"
-      const pathList = []
+      return standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query)
       
-      let paramIndex = 0
-      for(const node of nodes){
-        if(!node.dynamic){
-          pathList.push(node.name)
-          continue
-        }
-
-        switch(node.dynamicType){
-          case "requiredDynamic":
-            if(!dynamicParams[paramIndex])
-              throw new Error("missing required parameter " + node.nameParsed)
-            
-            pathList.push(dynamicParams[paramIndex++])
-            break
-          case "optionalSlug":
-            if(typeof dynamicParams[paramIndex] === typeof [])
-              pathList.push(dynamicParams[paramIndex++].join("/"))
-            break
-          case "slug":
-            if(!dynamicParams[paramIndex] || typeof dynamicParams[paramIndex] !== typeof [] || dynamicParams[paramIndex].length < 1)
-              throw new Error("missing required parameter " + node.nameParsed)
-              
-            pathList.push(dynamicParams[paramIndex++].join("/"))
-            break
-        }
-      }
-      if(pathList.at(-1) === "index"){
-       pathList.pop()
-      }
-      let path = pathList.join("/") + "/"
       
-      if(queryLength > 0)
-        path += "?"
-      for(const param in query){
-        path += param + "=" + String(query[param]) + "&"
-      }
-      if(queryLength > 0)
-        path = path.substring(0, path.length-1)
-      
-      return path
     
       },
         })
@@ -192,4 +75,48 @@
           routesJson
         }
         export default Routes
+        
+        function standardFunctionBody(nodes, dynamicParams, queryLength, componentName, query){
+          const pathList = []
+          let paramIndex = 0
+          for(const node of nodes){
+            if(!node.dynamic){
+              pathList.push(node.name)
+              continue
+            }
+  
+            switch(node.dynamicType){
+              case "requiredDynamic":
+                if(!dynamicParams[paramIndex])
+                  throw new Error("missing required parameter " + node.nameParsed)
+                
+                pathList.push(dynamicParams[paramIndex++])
+                break
+              case "optionalSlug":
+                if(typeof dynamicParams[paramIndex] === typeof [])
+                  pathList.push(dynamicParams[paramIndex++].join("/"))
+                break
+              case "slug":
+                if(!dynamicParams[paramIndex] || typeof dynamicParams[paramIndex] !== typeof [] || dynamicParams[paramIndex].length < 1)
+                  throw new Error("missing required parameter " + node.nameParsed)
+                  
+                pathList.push(dynamicParams[paramIndex++].join("/"))
+                break
+            }
+          }
+          if(pathList.at(-1) === "index"){
+          pathList.pop()
+          }
+          let path = pathList.join("/") + "/"
+          
+          if(queryLength > 0)
+            path += "?"
+          for(const param in query){
+            path += param + "=" + String(query[param]) + "&"
+          }
+          if(queryLength > 0)
+            path = path.substring(0, path.length-1)
+          
+          return path
+        }
         
