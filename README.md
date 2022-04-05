@@ -25,8 +25,6 @@ Next manifest also calculates route collisions.
 
 Imagine the following folder tree:
 
-/
-
 - -> **[test]** / test.jsx (component name Test1)
 - -> test / **[test]**.jsx (component name Test2)
 
