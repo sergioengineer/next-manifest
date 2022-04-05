@@ -26,8 +26,9 @@ Next manifest also calculates route collisions.
 Imagine the following folder tree:
 
 /
--> [test] / test.jsx (component name Test1)
--> test / [test].jsx (component name Test2)
+
+- -> [test] / test.jsx (component name Test1)
+- -> test / [test].jsx (component name Test2)
 
 The second route takes priority over the first one whenever the first parameter is named "test". That's because, in nextjs, exact name's have higher priority than dynamic params. The left most priority discrepancy is the most important one.
 
