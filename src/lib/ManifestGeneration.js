@@ -234,6 +234,9 @@ const ManifestGeneratorFactory = (forTests = false) => {
     console.info("generating manifest...")
     let componentsStrings = []
 
+    if (process.env.NODE_ENV === "production")
+      options.disableCollisionDetection = true
+
     try {
       const rootFolderNode = await getFolderNodeTreeFor(pagesPath) //get all the routes
 
