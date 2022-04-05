@@ -1,8 +1,28 @@
-import collisionDetection from "./collisionDetection.js"
+import yargs from "yargs"
+import { hideBin } from "yargs/helpers"
+import ManifestGeneratorFactory from "../lib/ManifestGeneration.js"
+import { getSortedRouteList } from "./collisionDetection.js"
 
-const routesJson = JSON.parse(
-  '{"nameParsed":"","name":"","dynamic":false,"hasDynamicParent":false,"files":[{"nameParsed":"index","name":"index","dynamic":false,"hasDynamicParent":false,"dynamicType":null,"componentName":"Home"}],"children":[{"nameParsed":"id","name":"[id]","dynamic":true,"hasDynamicParent":false,"dynamicType":"requiredDynamic","files":[{"nameParsed":"another","name":"another","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"More"},{"nameParsed":"id5id6","name":"[id5, id6]","dynamic":true,"hasDynamicParent":true,"dynamicType":"requiredDynamic","componentName":"Test"},{"nameParsed":"index","name":"index","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"User"},{"nameParsed":"more","name":"more","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"componentName":"More2"}],"children":[{"nameParsed":"test","name":"test","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"files":[{"nameParsed":"slug","name":"[...slug]","dynamic":true,"hasDynamicParent":true,"dynamicType":"slug","componentName":"catchAll"}],"children":[{"nameParsed":"othertest","name":"othertest","dynamic":false,"hasDynamicParent":true,"dynamicType":null,"files":[{"nameParsed":"slug","name":"[[...slug]]","dynamic":true,"hasDynamicParent":true,"dynamicType":"optionalSlug","componentName":"optionalCatchAll"}],"children":[]}]}]}]}'
-)
-const pathList = ["a", "test", "1"]
+const pagesPath = process.cwd() + "/__tests__/pages"
+const manifestFileName = "routeManifest.js"
+const argv = yargs(hideBin(process.argv)).argv
+const manifestGenerator = ManifestGeneratorFactory()
 
-console.log(collisionDetection(pathList, routesJson))
+/**
+ * Gets manifest path
+ */
+const manifestPath = process.cwd() + "/__tests__/" + manifestFileName
+
+manifestGenerator
+  .generateManifest(manifestPath || defaultManifestPath, pagesPath)
+  .then(async (_) => {
+    const { routesJson, Routes } = await import(
+      process.cwd() + "/__tests__/routeManifest.js"
+    )
+    const pathList = Routes.Test("test").split("/").splice(1, 2)
+    console.log(pathList)
+    console.log(getSortedRouteList(pathList, routesJson))
+  })
+  .catch((c) => {
+    console.error("unexpected error happened: ", c)
+  })

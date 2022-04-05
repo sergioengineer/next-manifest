@@ -6,17 +6,26 @@ import { DynamicTypes } from "../lib/types.js"
  * @param {FolderNode} rootNode
  * @param {string} expectedComponentName
  */
-export default async function collisionDetection(
-  pathList,
-  rootNode,
-  expectedComponentName
-) {
+export async function getSortedRouteList(pathList, rootNode) {
   /**@type {Node[]} */
   let finalCandidates = []
   /**@type {FolderNode[]} */
   let candidates = [rootNode]
   rootNode.priority = BigInt(0)
 
+  /**
+   * Iterates over every folder and file that might match a given route(pathList)
+   * Every candidate route will receive a priority which ranges from 0 to 4.
+   *
+   * Exact name match - 4 priority value
+   * Dynamic name - 3 priority value
+   * Required slug name - 2 priority value
+   * Optional slug name - 1 priority value
+   *
+   * Priority discrepancy is more important the earlier it appears in the route tree.
+   * Thus it is calculated by appending the new priority numbers to the right of the priovious one
+   * using base 5 in order to support longer folder trees.
+   */
   for (let i = 0; i < pathList.length; i++) {
     const path = pathList[i]
     const isLastPath = pathList.length - 1 === i
@@ -46,6 +55,7 @@ export default async function collisionDetection(
       )
 
       //Here we make sure to advance each and every candidate folder deeper into its tree
+      // while setting the aproppriate priority
       candidates = candidates.reduce((prev, curr) => {
         const children = curr.children.filter((c) => {
           if (!c?.priority) c.priority = BigInt(0)
@@ -125,7 +135,9 @@ export default async function collisionDetection(
       )
     }
   }
-  finalCandidates.sort((c1, c2) => c2.priority - c1.priority)
+  finalCandidates.sort((c1, c2) =>
+    c2.priority > c1.priority ? 1 : c1.priority > c2.priority ? -1 : 0
+  )
 
-  return finalCandidates[0]
+  return finalCandidates
 }
