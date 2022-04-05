@@ -2,7 +2,7 @@
 
 import { readFile, writeFile } from "fs/promises"
 import { getFolderFilesAndDirectories } from "./common.js"
-import { FileNode, FolderNode, Node } from "./node.js"
+import { FileNode, FolderNode, Node } from "./node/index.js"
 import {
   DynamicTypes,
   fileTypes,
@@ -189,7 +189,6 @@ const ManifestGeneratorFactory = (forTests = false) => {
        pathList.pop()
       }
       let path = pathList.join("/") + "/"
-      const pathWithoutQuery = pathList.join("/")
       
       if(queryLength > 0)
         path += "?"
@@ -290,7 +289,7 @@ const ManifestGeneratorFactory = (forTests = false) => {
               if (!addedComponents.has(newNameCandidate)) {
                 console.warn(
                   `Duplicated component name(${node.componentName}). ${newNameCandidate} was used instead.`,
-                  node
+                  node.path
                 )
                 node.componentName = newNameCandidate
                 break
