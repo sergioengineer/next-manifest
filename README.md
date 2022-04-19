@@ -33,7 +33,7 @@ Imagine the following folder tree:
 The second route takes priority over the first one whenever the first parameter is named "test". That's because, in nextjs, exact name's have higher priority than dynamic params. The left most priority discrepancy is the most important one.
 
 So, if you call
-`Test("test")`
+`Routes.Test("test")`
 You'll get an exception telling you that you are trying to redirect the user to a route which **collides** with one of higher priority.
 
 ## Usage
