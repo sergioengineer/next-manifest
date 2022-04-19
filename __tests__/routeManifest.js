@@ -243,7 +243,7 @@ const Routes = Object.freeze({
 
   /**
        * 
-       * 
+       * asdasd
        @param {Object.<string, string>} [query] - An object whose properties are going to be filled as extra parameters
     eg. urlGetter({foo: "bar"}) = url?foo=bar
     @returns {String} - a valid relative Url string
