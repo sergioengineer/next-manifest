@@ -37,3 +37,4 @@ yarn-error.log*
 *.tsbuildinfo
 
 /.vscode
+__tests__/routeManifest.js
